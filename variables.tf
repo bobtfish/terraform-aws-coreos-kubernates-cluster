@@ -1,3 +1,4 @@
+variable "etcd_discovery_uri" {}
 variable "admin_key_name" {}
 variable "sg" {}
 variable "region" {}
