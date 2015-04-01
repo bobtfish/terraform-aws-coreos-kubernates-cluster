@@ -22,9 +22,9 @@ resource "aws_launch_configuration" "kubernates-master" {
     }
 }
 
-resource "aws_autoscaling_group" "kubernates-node" {
+resource "aws_autoscaling_group" "kubernates-master" {
   availability_zones = ["${var.primary-az}", "${var.secondary-az}"]
-  name = "kubernates-node"
+  name = "kubernates-master"
   max_size = "${var.master-cluster-size}"
   min_size = "${var.master-cluster-size}"
   desired_capacity = "${var.master-cluster-size}"
