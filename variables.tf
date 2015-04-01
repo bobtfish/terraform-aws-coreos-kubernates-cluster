@@ -13,10 +13,10 @@ variable "master-cluster-size" {
 variable "node-cluster-size" {
    default = 3
 }
-variable "master-instancetype" {
+variable "master-instance_type" {
     default = "m3.large"
 }
-variable "node-instancetype" {
+variable "node-instance_type" {
     default = "m3.large"
 }
 

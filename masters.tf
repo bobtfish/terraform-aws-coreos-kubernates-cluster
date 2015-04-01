@@ -1,6 +1,6 @@
 module "master_amitype" {
   source = "github.com/bobtfish/terraform-amitype"
-  instance_type = "${var.master-instancetype}"
+  instance_type = "${var.master-instance_type}"
 }
 
 module "master_ami" {
@@ -12,7 +12,7 @@ module "master_ami" {
 
 resource "aws_launch_configuration" "kubernates-master" {
     image_id = "${module.cmaster_ami.ami_id}"
-    instance_type = "${var.master-instancetype}"
+    instance_type = "${var.master-instance_type}"
     security_groups = ["${var.sg}"]
     associate_public_ip_address = false
     user_data = "${var.kubernates-master-user-data}"

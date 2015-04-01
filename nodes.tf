@@ -1,6 +1,6 @@
 module "node_amitype" {
   source = "github.com/bobtfish/terraform-amitype"
-  instance_type = "${var.node-instancetype}"
+  instance_type = "${var.node-instance_type}"
 }
 
 module "node_ami" {
@@ -12,7 +12,7 @@ module "node_ami" {
 
 resource "aws_launch_configuration" "kubernates-node" {
     image_id = "${module.cnode_ami.ami_id}"
-    instance_type = "${var.node-instancetype}"
+    instance_type = "${var.node-instance_type}"
     security_groups = ["${var.sg}"]
     associate_public_ip_address = false
     user_data = "${var.kubernates-node-user-data}"
