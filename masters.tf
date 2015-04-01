@@ -11,7 +11,7 @@ module "master_ami" {
 }
 
 resource "aws_launch_configuration" "kubernates-master" {
-    image_id = "${module.cmaster_ami.ami_id}"
+    image_id = "${module.master_ami.ami_id}"
     instance_type = "${var.master-instance_type}"
     security_groups = ["${var.sg}"]
     associate_public_ip_address = false

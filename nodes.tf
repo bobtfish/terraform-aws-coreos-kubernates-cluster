@@ -11,7 +11,7 @@ module "node_ami" {
 }
 
 resource "aws_launch_configuration" "kubernates-node" {
-    image_id = "${module.cnode_ami.ami_id}"
+    image_id = "${module.node_ami.ami_id}"
     instance_type = "${var.node-instance_type}"
     security_groups = ["${var.sg}"]
     associate_public_ip_address = false
