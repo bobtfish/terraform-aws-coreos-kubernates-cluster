@@ -6,7 +6,7 @@ module "master_amitype" {
 module "master_ami" {
   source = "github.com/bobtfish/terraform-coreos-ami"
   region = "${var.region}"
-  channel = "${var.coreos_channel}"
+  channel = "${var.coreos-channel}"
   virttype = "${module.master_amitype.ami_type_prefer_hvm}"
 }
 

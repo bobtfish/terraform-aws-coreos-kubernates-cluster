@@ -6,7 +6,7 @@ module "node_amitype" {
 module "node_ami" {
   source = "github.com/bobtfish/terraform-coreos-ami"
   region = "${var.region}"
-  channel = "${var.coreos_channel}"
+  channel = "${var.coreos-channel}"
   virttype = "${module.node_amitype.ami_type_prefer_hvm}"
 }
 
