@@ -1,3 +1,4 @@
+variable "admin_key_name" {}
 variable "sg" {}
 variable "region" {}
 variable "coreos-channel" {
