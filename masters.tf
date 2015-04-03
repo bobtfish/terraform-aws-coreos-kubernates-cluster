@@ -25,7 +25,7 @@ resource "aws_launch_configuration" "kubernates-master" {
 resource "aws_autoscaling_group" "kubernates-master" {
   availability_zones = ["${var.primary-az}", "${var.secondary-az}"]
   name = "kubernates-master"
-  max_size = "${var.master-cluster-size+1}"
+  max_size = "${toint(var.master-cluster-size)+1}"
   min_size = "${var.master-cluster-size}"
   desired_capacity = "${var.master-cluster-size}"
   health_check_grace_period = 120
