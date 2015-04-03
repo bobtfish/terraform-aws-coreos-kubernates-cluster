@@ -10,7 +10,7 @@ variable "secondary-az" {}
 variable "primary-az-subnet" {}
 variable "secondary-az-subnet" {}
 variable "master-cluster-size" {
-   default = 3
+   default = 1
 }
 variable "node-cluster-size" {
    default = 3
