@@ -1,11 +1,8 @@
 .PHONEY: all
 
-all: variables.tf.json
+all:
 	true
 
 clean:
 	rm -f variables.tf.json
-
-variables.tf.json:
-	ruby getvariables.rb > variables.tf.json
 
