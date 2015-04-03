@@ -15,7 +15,7 @@ resource "aws_launch_configuration" "kubernates-master" {
     instance_type = "${var.master-instance_type}"
     security_groups = ["${var.sg}"]
     associate_public_ip_address = false
-    user_data = "${file(master.yaml)}"
+    user_data = "${file(\"master.yaml\")}"
     key_name = "${var.admin_key_name}"
     lifecycle {
         create_before_destroy = true
