@@ -25,7 +25,7 @@ resource "aws_launch_configuration" "kubernates-node" {
 resource "aws_autoscaling_group" "kubernates-node" {
   availability_zones = ["${var.primary-az}", "${var.secondary-az}"]
   name = "kubernates-node"
-  max_size = "${var.node-cluster-size}"
+  max_size = "${toint(var.node-cluster-size)+1}"
   min_size = "${var.node-cluster-size}"
   desired_capacity = "${var.node-cluster-size}"
   health_check_grace_period = 120
