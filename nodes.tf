@@ -10,7 +10,7 @@ module "node_ami" {
   virttype = "${module.node_amitype.ami_type_prefer_hvm}"
 }
 
-resource "aws_launch_configuration" "kubernates-node" {
+resource "aws_launch_configuration" "kubernetes-node" {
     image_id = "${module.node_ami.ami_id}"
     instance_type = "${var.node-instance_type}"
     security_groups = ["${var.sg}"]
@@ -22,20 +22,20 @@ resource "aws_launch_configuration" "kubernates-node" {
     }
 }
 
-resource "aws_autoscaling_group" "kubernates-node" {
+resource "aws_autoscaling_group" "kubernetes-node" {
   availability_zones = ["${var.primary-az}", "${var.secondary-az}"]
-  name = "kubernates-node"
+  name = "kubernetes-node"
   max_size = "${toint(var.node-cluster-size)+1}"
   min_size = "${var.node-cluster-size}"
   desired_capacity = "${var.node-cluster-size}"
   health_check_grace_period = 120
   health_check_type = "EC2"
   force_delete = true
-  launch_configuration = "${aws_launch_configuration.kubernates-node.name}"
+  launch_configuration = "${aws_launch_configuration.kubernetes-node.name}"
   vpc_zone_identifier = [ "${var.primary-az-subnet}", "${var.secondary-az-subnet}" ]
   tag {
     key = "Name"
-    value = "kubernates-node"
+    value = "kubernetes-node"
     propagate_at_launch = true
   }
 }
