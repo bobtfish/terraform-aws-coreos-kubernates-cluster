@@ -1,15 +1,23 @@
 #cloud-config
-
+write-files:
+  - path: /opt/bin/wupiao
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      # [w]ait [u]ntil [p]ort [i]s [a]ctually [o]pen
+      [ -n "$$1" ] && [ -n "$$2" ] && while ! curl --output /dev/null \
+        --silent --head --fail \
+        http://$${1}:$${2}; do sleep 1 && echo -n .; done;
+      exit $$?
 coreos:
+  etcd2:
+    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    advertise-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    initial-cluster: master=http://${master_ip}:2380
+    proxy: on
   fleet:
-    etcd-servers: http://<master-private-ip>:4001
     metadata: "role=node"
-  flannel:
-    interface: eth1
-    etcd_endpoints: http://<master-private-ip>:4001
   units:
-    - name: etcd.service
-      mask: true
     - name: fleet.service
       command: start
     - name: flanneld.service
@@ -17,21 +25,20 @@ coreos:
       drop-ins:
         - name: 50-network-config.conf
           content: |
+            [Unit]
+            Requires=etcd2.service
             [Service]
-            ExecStartPre=/bin/bash -c "until curl http://<master-private-ip>:4001/v2/machines; do sleep 2; done"
-            ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network":"10.244.0.0/16", "Backend": {"Type": "vxlan"}}'
+            ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{"Network": "${flanneld_cidr}", "Backend": {"Type": "vxlan"}}'
     - name: docker.service
       command: start
       drop-ins:
-        - name: 51-docker-mirror.conf
+        - name: 60-wait-for-flannel-config.conf
           content: |
             [Unit]
-            # making sure that flanneld finished startup, otherwise containers
-            # won't land in flannel's network...
-            Requires=flanneld.service
             After=flanneld.service
-            [Service]
-            Environment=DOCKER_OPTS='--registry-mirror=http://<master-private-ip>:5000'
+            Requires=flanneld.service
+            Restart=always
+            Restart=on-failure
     - name: setup-network-environment.service
       command: start
       content: |
@@ -43,7 +50,7 @@ coreos:
 
         [Service]
         ExecStartPre=-/usr/bin/mkdir -p /opt/bin
-        ExecStartPre=/usr/bin/wget -N -P /opt/bin https://storage.googleapis.com/k8s/setup-network-environment
+        ExecStartPre=/usr/bin/curl -L -o /opt/bin/setup-network-environment -z /opt/bin/setup-network-environment https://github.com/kelseyhightower/setup-network-environment/releases/download/v1.0.0/setup-network-environment
         ExecStartPre=/usr/bin/chmod +x /opt/bin/setup-network-environment
         ExecStart=/opt/bin/setup-network-environment
         RemainAfterExit=yes
@@ -58,10 +65,12 @@ coreos:
         After=setup-network-environment.service
 
         [Service]
-        ExecStartPre=/usr/bin/wget -N -P /opt/bin https://storage.googleapis.com/kubernetes-release/release/v0.11.0/bin/linux/amd64/kube-proxy
+        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kube-proxy -z /opt/bin/kube-proxy https://storage.googleapis.com/kubernetes-release/release/${kubernetes_release}/bin/linux/amd64/kube-proxy
         ExecStartPre=/usr/bin/chmod +x /opt/bin/kube-proxy
+        # wait for kubernetes master to be up and ready
+        ExecStartPre=/opt/bin/wupiao ${master_ip} 8080
         ExecStart=/opt/bin/kube-proxy \
-        --master=http://<master-private-ip>:8080 \
+        --master=http://${master_ip}:8080 \
         --logtostderr=true
         Restart=always
         RestartSec=10
@@ -76,14 +85,20 @@ coreos:
 
         [Service]
         EnvironmentFile=/etc/network-environment
-        ExecStartPre=/usr/bin/wget -N -P /opt/bin https://storage.googleapis.com/kubernetes-release/release/v0.11.0/bin/linux/amd64/kubelet
+        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kubelet -z /opt/bin/kubelet https://storage.googleapis.com/kubernetes-release/release/${kubernetes_release}/bin/linux/amd64/kubelet
         ExecStartPre=/usr/bin/chmod +x /opt/bin/kubelet
+        # wait for kubernetes master to be up and ready
+        ExecStartPre=/opt/bin/wupiao ${master_ip} 8080
         ExecStart=/opt/bin/kubelet \
         --address=0.0.0.0 \
         --port=10250 \
-        --hostname_override=$private_ipv4 \
-        --api_servers=<master-private-ip>:8080 \
-        --logtostderr=true
+        --hostname_override=$${DEFAULT_IPV4} \
+        --api_servers=http://${master_ip}:8080 \
+        --allow_privileged=true \
+        --logtostderr=true \
+        --cadvisor_port=4194 \
+        --healthz_bind_address=0.0.0.0 \
+        --healthz_port=10248
         Restart=always
         RestartSec=10
   update:
