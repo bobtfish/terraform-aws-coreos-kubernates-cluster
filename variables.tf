@@ -5,6 +5,9 @@ variable "region" {}
 variable "coreos-channel" {
   default = "stable"
 }
+variable "kubernetes_release" {
+  default = "v1.0.6"
+}
 variable "primary-az" {}
 variable "secondary-az" {}
 variable "primary-az-subnet" {}
@@ -16,9 +19,11 @@ variable "node-cluster-size" {
    default = 3
 }
 variable "master-instance_type" {
-    default = "m3.large"
+    default = "t2.small"
 }
 variable "node-instance_type" {
     default = "m3.large"
 }
-
+variable "flanneld_cidr" {
+    default = "10.244.0.0/24"
+}
